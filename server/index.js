@@ -9,6 +9,7 @@ import { parsePO }       from './parsers/index.js';
 import { validate }      from './validate.js';
 import { generateSC }    from './generators/sc-generator.js';
 import { generateSapKeyin } from './generators/sap-keyin.js';
+import { loadPrices, savePrices, applyPrices, newId, validatePriceEntry } from './prices.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT      = path.resolve(__dirname, '..');
@@ -51,8 +52,10 @@ app.post('/api/parse', upload.single('po'), async (req, res) => {
     const parsed = parsePO(text);
     if (parsed.error) return res.status(422).json(parsed);
     const customer = await loadCustomer(parsed.customer_id);
+    const prices   = await loadPrices();
+    const priced   = applyPrices(parsed, prices);
     const issues   = validate(parsed, customer);
-    res.json({ parsed, customer, issues });
+    res.json({ parsed, customer, issues, prices_applied: priced.applied });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: String(e.message || e) });
@@ -108,6 +111,7 @@ app.post('/api/batch-generate', upload.array('po', 50), async (req, res) => {
   const batchDir   = path.join(ROOT, 'output', batchId);
   await fs.mkdir(batchDir, { recursive: true });
 
+  const prices  = await loadPrices();
   const results = [];
   for (const file of files) {
     const entry = { original_name: file.originalname, status: 'pending', files: [] };
@@ -117,6 +121,7 @@ app.post('/api/batch-generate', upload.array('po', 50), async (req, res) => {
       if (parsed.error) throw new Error(parsed.error);
 
       const customer = await loadCustomer(parsed.customer_id);
+      const priced   = applyPrices(parsed, prices);
       const edits    = defaultEdits(parsed, customer);
       const poSafe   = String(parsed.po_number || 'unknown').replace(/[\\/:*?"<>|]/g, '_');
       const subDir   = path.join(batchDir, `${customer.id}-${poSafe}`);
@@ -147,6 +152,7 @@ app.post('/api/batch-generate', upload.array('po', 50), async (req, res) => {
       entry.customer_name = customer.name;
       entry.po_number     = parsed.po_number;
       entry.lines_count   = (parsed.lines || []).length;
+      entry.prices_applied = priced.applied;
       entry.totals        = r.totals;
       entry.status        = 'ok';
     } catch (e) {
@@ -159,6 +165,58 @@ app.post('/api/batch-generate', upload.array('po', 50), async (req, res) => {
   const manifestPath = path.join(batchDir, 'manifest.json');
   await fs.writeFile(manifestPath, JSON.stringify({ batch_id: batchId, results }, null, 2), 'utf8');
   res.json({ batch_id: batchId, results });
+});
+
+// ----- Master price book CRUD -----
+
+app.get('/api/prices', async (req, res) => {
+  try {
+    const prices = await loadPrices();
+    const customerId = req.query.customer_id;
+    const filtered = customerId ? prices.filter(p => p.customer_id === customerId) : prices;
+    res.json({ prices: filtered });
+  } catch (e) {
+    res.status(500).json({ error: String(e.message || e) });
+  }
+});
+
+app.post('/api/prices', async (req, res) => {
+  try {
+    const body = req.body || {};
+    const errors = validatePriceEntry(body);
+    if (errors.length) return res.status(400).json({ error: errors.join('; ') });
+
+    const prices = await loadPrices();
+    const entry = {
+      id:                  body.id || newId(),
+      customer_id:         body.customer_id,
+      item_code:           body.item_code || null,
+      description_contains: body.description_contains || null,
+      packing_kg:          body.packing_kg === '' || body.packing_kg == null ? null : Number(body.packing_kg),
+      price_per_mt:        Number(body.price_per_mt),
+      currency:            body.currency || 'USD',
+      notes:               body.notes || '',
+      updated_at:          new Date().toISOString(),
+    };
+    const idx = prices.findIndex(p => p.id === entry.id);
+    if (idx >= 0) prices[idx] = entry; else prices.push(entry);
+    await savePrices(prices);
+    res.json({ price: entry });
+  } catch (e) {
+    res.status(500).json({ error: String(e.message || e) });
+  }
+});
+
+app.delete('/api/prices/:id', async (req, res) => {
+  try {
+    const prices = await loadPrices();
+    const next = prices.filter(p => p.id !== req.params.id);
+    if (next.length === prices.length) return res.status(404).json({ error: 'not found' });
+    await savePrices(next);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: String(e.message || e) });
+  }
 });
 
 // Serve generated files for download

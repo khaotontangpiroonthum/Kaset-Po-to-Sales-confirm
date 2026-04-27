@@ -19,6 +19,7 @@
         <input type="file" id="batch-files" accept="application/pdf" multiple required>
         <button type="submit" class="primary">Generate All</button>
         <button id="manual-mode" type="button" class="ghost">Review &amp; edit one PO instead</button>
+        <button id="open-prices" type="button" class="ghost">Master Prices</button>
         <span id="batch-status" class="status"></span>
       </form>
       <div id="batch-results-wrap" hidden>
@@ -34,6 +35,64 @@
         <div class="actions" style="margin-top:12px">
           <button id="batch-restart" class="ghost" type="button">New batch</button>
         </div>
+      </div>
+    </section>
+
+    <section id="step-prices" class="step">
+      <h2>Master Price Book</h2>
+      <div class="panel">
+        <h3>Add / update price</h3>
+        <form id="price-form" class="grid two">
+          <div class="field">
+            <label>Customer</label>
+            <select data-field="customer_id" required>
+              <option value="">— pick a customer —</option>
+              <option value="consumer-brands">Consumer Brands</option>
+              <option value="asia-express">Asia Express</option>
+              <option value="fantasy">Fantasy</option>
+              <option value="de-care">De Care</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Item code</label>
+            <input data-field="item_code" placeholder="optional, e.g. material no.">
+          </div>
+          <div class="field">
+            <label>Description contains</label>
+            <input data-field="description_contains" placeholder="optional, e.g. Jasmine">
+          </div>
+          <div class="field">
+            <label>Packing kg</label>
+            <input data-field="packing_kg" type="number" step="any" placeholder="optional, per-bag or per-carton kg">
+          </div>
+          <div class="field">
+            <label>Price / MT (USD)</label>
+            <input data-field="price_per_mt" type="number" step="any" required placeholder="e.g. 1170">
+          </div>
+          <div class="field">
+            <label>Notes</label>
+            <input data-field="notes" placeholder="optional">
+          </div>
+          <input type="hidden" data-field="id">
+          <div class="actions" style="grid-column:1/-1">
+            <button type="submit" class="primary">Save</button>
+            <button id="price-cancel" type="button" class="ghost">Cancel edit</button>
+            <span id="price-status" class="status"></span>
+          </div>
+        </form>
+      </div>
+      <div class="panel">
+        <h3>Current prices</h3>
+        <table id="prices-table">
+          <thead><tr>
+            <th>Customer</th><th>Item code</th><th>Description contains</th><th>Packing kg</th>
+            <th style="text-align:right">USD / MT</th><th>Notes</th><th></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="actions">
+        <button id="prices-back" type="button" class="ghost">← Back</button>
       </div>
     </section>
 

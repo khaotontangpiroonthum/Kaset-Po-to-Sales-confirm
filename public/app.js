@@ -250,6 +250,93 @@ $('#manual-mode').addEventListener('click', () => gotoStep('step-upload'));
 $('#back-to-batch').addEventListener('click', () => gotoStep('step-batch'));
 $('#batch-restart').addEventListener('click', () => location.reload());
 
+$('#open-prices').addEventListener('click', async () => {
+  await refreshPrices();
+  resetPriceForm();
+  gotoStep('step-prices');
+});
+$('#prices-back').addEventListener('click', () => gotoStep('step-batch'));
+$('#price-cancel').addEventListener('click', (e) => { e.preventDefault(); resetPriceForm(); });
+
+$('#price-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const body = {};
+  for (const el of form.querySelectorAll('[data-field]')) {
+    const k = el.dataset.field;
+    const v = el.value === '' ? null : el.value;
+    if (v !== null) body[k] = v;
+  }
+  const status = $('#price-status');
+  status.textContent = 'Saving…'; status.className = 'status';
+  try {
+    const r = await fetch('/api/prices', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || `error: ${r.status}`);
+    status.textContent = 'Saved.'; status.className = 'status ok';
+    resetPriceForm();
+    await refreshPrices();
+  } catch (err) {
+    status.textContent = err.message; status.className = 'status error';
+  }
+});
+
+async function refreshPrices() {
+  const r = await fetch('/api/prices');
+  const data = await r.json();
+  const tbody = $('#prices-table tbody');
+  tbody.innerHTML = '';
+  if (!data.prices?.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="sev-info">(no prices yet — add one above)</td></tr>';
+    return;
+  }
+  for (const p of data.prices) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(p.customer_id)}</td>
+      <td>${escapeHtml(p.item_code || '')}</td>
+      <td>${escapeHtml(p.description_contains || '')}</td>
+      <td>${p.packing_kg ?? ''}</td>
+      <td style="text-align:right">${Number(p.price_per_mt).toFixed(2)}</td>
+      <td>${escapeHtml(p.notes || '')}</td>
+      <td>
+        <button class="ghost edit-btn" type="button">Edit</button>
+        <button class="ghost del-btn" type="button">Delete</button>
+      </td>`;
+    tr.querySelector('.edit-btn').addEventListener('click', () => loadPriceIntoForm(p));
+    tr.querySelector('.del-btn').addEventListener('click', () => deletePrice(p.id));
+    tbody.append(tr);
+  }
+}
+
+function loadPriceIntoForm(p) {
+  const form = $('#price-form');
+  for (const el of form.querySelectorAll('[data-field]')) {
+    const k = el.dataset.field;
+    el.value = p[k] ?? '';
+  }
+  $('#price-status').textContent = `Editing ${p.id}`;
+  $('#price-status').className = 'status';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetPriceForm() {
+  const form = $('#price-form');
+  form.reset();
+  for (const el of form.querySelectorAll('[data-field]')) el.value = '';
+  $('#price-status').textContent = '';
+  $('#price-status').className = 'status';
+}
+
+async function deletePrice(id) {
+  if (!confirm('Delete this price?')) return;
+  const r = await fetch(`/api/prices/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if (r.ok) await refreshPrices();
+  else alert('Delete failed: ' + r.status);
+}
+
 $('#batch-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const files = $('#batch-files').files;
