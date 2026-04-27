@@ -48,7 +48,7 @@ app.post('/api/generate', async (req, res) => {
     const { parsed, edits = {}, what = ['sc', 'sap'] } = req.body;
     if (!parsed?.customer_id) return res.status(400).json({ error: 'parsed.customer_id required' });
     const customer = await loadCustomer(parsed.customer_id);
-    const refSafe  = (edits.sc_ref_no || `${customer.ref_prefix}TBD`).replace(/[\\/]/g, '_');
+    const refSafe  = (edits.sc_ref_no || `${customer.ref_prefix}TBD`).replace(/[\\/:*?"<>|]/g, '_');
     const stamp    = Date.now();
     const outDir   = path.join(ROOT, 'output', `${refSafe}-${stamp}`);
     await fs.mkdir(outDir, { recursive: true });
