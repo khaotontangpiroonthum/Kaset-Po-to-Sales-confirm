@@ -246,5 +246,70 @@ const path = { sep: '/' };
 $('#restart').addEventListener('click', () => location.reload());
 $('#restart2').addEventListener('click', () => location.reload());
 
+$('#manual-mode').addEventListener('click', () => gotoStep('step-upload'));
+$('#back-to-batch').addEventListener('click', () => gotoStep('step-batch'));
+$('#batch-restart').addEventListener('click', () => location.reload());
+
+$('#batch-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const files = $('#batch-files').files;
+  if (!files.length) return;
+  const fd = new FormData();
+  for (const f of files) fd.append('po', f);
+
+  const status = $('#batch-status');
+  const submitBtn = e.target.querySelector('button[type=submit]');
+  submitBtn.disabled = true;
+  status.textContent = `Generating ${files.length} sales confirmation${files.length === 1 ? '' : 's'}…`;
+  status.className = 'status';
+
+  try {
+    const r = await fetch('/api/batch-generate', { method: 'POST', body: fd });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || `error: ${r.status}`);
+    renderBatchResults(data.results);
+    const okCount  = data.results.filter(x => x.status === 'ok').length;
+    const errCount = data.results.length - okCount;
+    status.textContent = errCount === 0
+      ? `Done — ${okCount} generated.`
+      : `${okCount} generated, ${errCount} failed.`;
+    status.className = errCount === 0 ? 'status ok' : 'status error';
+  } catch (err) {
+    status.textContent = err.message;
+    status.className = 'status error';
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+
+function renderBatchResults(results) {
+  const tbody = $('#batch-results tbody');
+  tbody.innerHTML = '';
+  for (const r of results) {
+    const tr = document.createElement('tr');
+    if (r.status === 'error') {
+      tr.innerHTML = `
+        <td>${escapeHtml(r.original_name)}</td>
+        <td colspan="4" class="sev-error">${escapeHtml(r.error || 'failed')}</td>
+        <td><span class="tag error">error</span></td>
+        <td></td>`;
+    } else {
+      const links = (r.files || [])
+        .map(f => `<a href="/${escAttr(f.path.split(/[\\/]/).join('/'))}" target="_blank">${escapeHtml(f.kind.toUpperCase())}</a>`)
+        .join(' &middot; ');
+      tr.innerHTML = `
+        <td>${escapeHtml(r.original_name)}</td>
+        <td>${escapeHtml(r.customer_name || r.customer_id || '')}</td>
+        <td>${escapeHtml(r.po_number || '')}</td>
+        <td>${r.lines_count ?? ''}</td>
+        <td style="text-align:right">${r.totals?.total_amount?.toFixed?.(2) ?? ''}</td>
+        <td><span class="tag info">ok</span></td>
+        <td>${links}</td>`;
+    }
+    tbody.append(tr);
+  }
+  $('#batch-results-wrap').hidden = false;
+}
+
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 function escAttr(s) { return escapeHtml(s); }

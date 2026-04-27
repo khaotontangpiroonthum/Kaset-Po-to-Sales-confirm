@@ -28,6 +28,22 @@ async function loadSeller() {
   return JSON.parse(await fs.readFile(path.join(ROOT, 'server/customers/_seller.json'), 'utf8'));
 }
 
+function defaultEdits(parsed, customer) {
+  return {
+    sc_date_iso:    new Date().toISOString().slice(0, 10),
+    sc_ref_no:      `${customer.ref_prefix}???/${new Date().getFullYear()}`,
+    buyer_attn:     parsed.buyer?.attn || customer.buyer.default_attn,
+    incoterms:      parsed.shipment?.incoterms    || customer.default_incoterms,
+    payment_terms:  parsed.shipment?.payment_terms || customer.default_payment_terms,
+    port_of_loading:    customer.default_port_of_loading,
+    port_of_discharge:  customer.default_port_of_discharge,
+    eta_text:       parsed.shipment?.etd || '',
+    container:      parsed.shipment?.container || '1 x 20ft FCL',
+    freight:        0,
+    lines:          parsed.lines || [],
+  };
+}
+
 app.post('/api/parse', upload.single('po'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'no file uploaded' });
@@ -81,6 +97,68 @@ app.post('/api/generate', async (req, res) => {
     console.error(e);
     res.status(500).json({ error: String(e.message || e), stack: e.stack });
   }
+});
+
+app.post('/api/batch-generate', upload.array('po', 50), async (req, res) => {
+  const files = req.files || [];
+  if (!files.length) return res.status(400).json({ error: 'no files uploaded' });
+
+  const batchStamp = Date.now();
+  const batchId    = `batch-${batchStamp}`;
+  const batchDir   = path.join(ROOT, 'output', batchId);
+  await fs.mkdir(batchDir, { recursive: true });
+
+  const results = [];
+  for (const file of files) {
+    const entry = { original_name: file.originalname, status: 'pending', files: [] };
+    try {
+      const text   = await extractText(file.buffer);
+      const parsed = parsePO(text);
+      if (parsed.error) throw new Error(parsed.error);
+
+      const customer = await loadCustomer(parsed.customer_id);
+      const edits    = defaultEdits(parsed, customer);
+      const poSafe   = String(parsed.po_number || 'unknown').replace(/[\\/:*?"<>|]/g, '_');
+      const subDir   = path.join(batchDir, `${customer.id}-${poSafe}`);
+      await fs.mkdir(subDir, { recursive: true });
+      const baseName = `${customer.ref_prefix}-${poSafe}`;
+
+      const scPath = path.join(subDir, `${baseName}.xlsx`);
+      const r      = await generateSC(parsed, customer, edits, scPath);
+      entry.files.push({ kind: 'sc', path: path.relative(ROOT, scPath), totals: r.totals, lines: r.lines });
+
+      const html    = generateSapKeyin(parsed, customer, edits);
+      const sapPath = path.join(subDir, `${baseName}-SAP-keyin.html`);
+      await fs.writeFile(sapPath, html, 'utf8');
+      entry.files.push({ kind: 'sap', path: path.relative(ROOT, sapPath) });
+
+      const audit = {
+        generated_at: new Date().toISOString(),
+        customer_id:  customer.id,
+        po_number:    parsed.po_number,
+        original:     parsed,
+        edits,
+      };
+      const auditPath = path.join(subDir, 'audit.json');
+      await fs.writeFile(auditPath, JSON.stringify(audit, null, 2), 'utf8');
+      entry.files.push({ kind: 'audit', path: path.relative(ROOT, auditPath) });
+
+      entry.customer_id   = customer.id;
+      entry.customer_name = customer.name;
+      entry.po_number     = parsed.po_number;
+      entry.lines_count   = (parsed.lines || []).length;
+      entry.totals        = r.totals;
+      entry.status        = 'ok';
+    } catch (e) {
+      entry.status = 'error';
+      entry.error  = String(e.message || e);
+    }
+    results.push(entry);
+  }
+
+  const manifestPath = path.join(batchDir, 'manifest.json');
+  await fs.writeFile(manifestPath, JSON.stringify({ batch_id: batchId, results }, null, 2), 'utf8');
+  res.json({ batch_id: batchId, results });
 });
 
 // Serve generated files for download

@@ -13,11 +13,36 @@
   </header>
 
   <main>
-    <section id="step-upload" class="step active">
+    <section id="step-batch" class="step active">
+      <h2>Generate sales confirmations</h2>
+      <form id="batch-form">
+        <input type="file" id="batch-files" accept="application/pdf" multiple required>
+        <button type="submit" class="primary">Generate All</button>
+        <button id="manual-mode" type="button" class="ghost">Review &amp; edit one PO instead</button>
+        <span id="batch-status" class="status"></span>
+      </form>
+      <div id="batch-results-wrap" hidden>
+        <table id="batch-results">
+          <thead>
+            <tr>
+              <th>File</th><th>Customer</th><th>PO #</th><th>Lines</th>
+              <th style="text-align:right">Total $</th><th>Status</th><th>Downloads</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div class="actions" style="margin-top:12px">
+          <button id="batch-restart" class="ghost" type="button">New batch</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="step-upload" class="step">
       <h2>1. Upload PO</h2>
       <form id="upload-form">
         <input type="file" id="po-file" accept="application/pdf" required>
         <button type="submit">Parse PO</button>
+        <button id="back-to-batch" type="button" class="ghost">← Back to batch mode</button>
         <span id="upload-status" class="status"></span>
       </form>
     </section>
