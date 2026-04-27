@@ -1,0 +1,15 @@
+{
+  "name": "THAI HA PUBLIC COMPANY LIMITED",
+  "address": "140 MOO 5 T.BANGKRATUEK, A.SAMPHRAN NAKORNPATHOM 73210, THAILAND",
+  "phone": "+662-482-1662-4",
+  "fax": "+66-34-288-415",
+  "default_contact": "Ms. May",
+  "bank": {
+    "name": "Siam Commercial Bank Public Company Limited",
+    "branch": "Tesco Lotus Salaya Branch",
+    "address": "9 Rutchadapisek Road Jatujak Bangkok 10900 Thailand",
+    "swift": "SICOTHBK",
+    "account_no": "401-000404-9-840",
+    "beneficiary_name": "Thai Ha Public Company Limited"
+  }
+}

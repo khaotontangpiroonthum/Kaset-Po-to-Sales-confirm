@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Thai Ha — PO → Sales Confirmation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Thai Ha — PO → Sales Confirmation</h1>
+    <div class="sub">Upload a customer PO PDF. Review extracted fields. Generate the SC + SAP key-in sheet.</div>
+  </header>
+
+  <main>
+    <section id="step-upload" class="step active">
+      <h2>1. Upload PO</h2>
+      <form id="upload-form">
+        <input type="file" id="po-file" accept="application/pdf" required>
+        <button type="submit">Parse PO</button>
+        <span id="upload-status" class="status"></span>
+      </form>
+    </section>
+
+    <section id="step-review" class="step">
+      <h2>2. Review &amp; edit</h2>
+
+      <div class="grid two">
+        <div class="panel">
+          <h3>Customer / Header</h3>
+          <div id="header-fields"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Shipment / Commercial</h3>
+          <div id="shipment-fields"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Items</h3>
+        <table id="items">
+          <thead><tr>
+            <th>#</th><th>Item code</th><th>Description</th><th>Packing</th>
+            <th>Qty</th><th>Unit</th><th>MT</th><th>Price/Unit</th><th>Price/MT</th><th>Line total</th><th></th>
+          </tr></thead>
+          <tbody></tbody>
+          <tfoot>
+            <tr><td colspan="6" style="text-align:right"><b>Totals</b></td>
+                <td id="t-mt"></td><td></td><td></td><td id="t-amount"></td><td></td></tr>
+          </tfoot>
+        </table>
+        <button id="add-line" class="ghost" type="button">+ Add line</button>
+      </div>
+
+      <div class="panel">
+        <h3>Validation &amp; warnings</h3>
+        <ul id="issues"></ul>
+      </div>
+
+      <div class="panel">
+        <h3>Special instructions extracted from PO</h3>
+        <ul id="clauses"></ul>
+      </div>
+
+      <div class="actions">
+        <button id="gen-btn" class="primary" type="button">Generate SC &amp; SAP key-in</button>
+        <button id="restart" class="ghost" type="button">Start over</button>
+      </div>
+    </section>
+
+    <section id="step-output" class="step">
+      <h2>3. Generated</h2>
+      <ul id="output-files"></ul>
+      <button id="restart2" class="ghost" type="button">New PO</button>
+    </section>
+  </main>
+
+  <script src="app.js" type="module"></script>
+</body>
+</html>

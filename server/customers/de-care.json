@@ -1,0 +1,35 @@
+{
+  "id": "de-care",
+  "name": "De Care Group Sp. z o.o.",
+  "country": "Poland",
+  "ref_prefix": "DC",
+  "template_file": "de-care-template.xlsx",
+  "po_has_prices": false,
+  "freight_row": "none",
+  "freight_label": null,
+  "internal_gp_cols": false,
+  "amount_in_words": false,
+  "default_seller_contact": "Mr. Kris Tangpiroonthum",
+  "default_seller_signer": "Kris",
+  "default_payment_terms": "100% T/T 45 Days After B/L Date",
+  "default_incoterms": "FOB Bangkok, Thailand",
+  "default_port_of_loading": "Bangkok, Thailand",
+  "default_port_of_discharge": "Blonie, Poland",
+  "default_destination": "Blonie, Poland",
+  "documents_required": "Invoice, B/L, CO, Packing List, Fumi Cert.",
+  "qty_unit_on_po": "pcs",
+  "buyer": {
+    "name": "DE CARE GROUP SP. Z O.O. I WSPOLNICY S.K.A.",
+    "address": "Pienkow 147A, 05-152 Czosnow, Poland",
+    "ship_to_address": "Pienkow 147A, 05-152 Czosnow, Poland",
+    "phone": "+48-22-865-56-65",
+    "fax": "+48-22-835-61-17",
+    "default_attn": "Mr. Michal Marciniak",
+    "vat_no": "PL118 00 32 372",
+    "supplier_code_for_them": "K03562"
+  },
+  "special_clauses": [
+    "VAT number on Sales Confirmation (EU requirement)",
+    "Buyer's General Terms and Conditions of Purchase apply (https://decare.pl/o-firmie/general-terms-and-conditions-of-purchase/)"
+  ]
+}

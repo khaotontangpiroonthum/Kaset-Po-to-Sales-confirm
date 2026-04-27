@@ -1,0 +1,39 @@
+{
+  "id": "fantasy",
+  "name": "Fantasy Pvt. Ltd.",
+  "country": "Maldives",
+  "ref_prefix": "FS",
+  "template_file": "fantasy-template.xlsx",
+  "po_has_prices": false,
+  "freight_row": "CNF",
+  "freight_label": "CNF to Male, Republic of Maldives 20'FCL",
+  "internal_gp_cols": false,
+  "amount_in_words": true,
+  "default_seller_contact": "Mr. Kris",
+  "default_seller_signer": "Kris",
+  "default_payment_terms": "100% TT before ETA",
+  "default_incoterms": "FOB Bangkok, Thailand",
+  "default_port_of_loading": "Bangkok, Thailand",
+  "default_port_of_discharge": "Male, Republic of Maldives",
+  "default_destination": "Male, Republic of Maldives",
+  "documents_required": "Invoice, B/L, CO, Packing List, Fumi Cert.",
+  "qty_unit_on_po": "kg_total",
+  "buyer": {
+    "name": "Fantasy Private Limited",
+    "address": "M. Velaaluge 1st Floor, Fareedhee Magu, P.O. Box 20214, Male', Republic of Maldives",
+    "ship_to_address": "M. Velaaluge 1st Floor, Fareedhee Magu, P.O. Box 20214, Male', Republic of Maldives",
+    "phone": "960-332-4668",
+    "fax": "960 331 0136",
+    "default_attn": "Mr. Ibrahim Rasheed",
+    "registration_no": "C-95/2005"
+  },
+  "special_clauses": [
+    "Halal: products must NOT contain pork, wine, alcohol, or amaretto",
+    "All labels in English (or with English translation)",
+    "Expiry date AND Production date on each product (Maldives Customs requirement)",
+    "Packing list in English",
+    "Packing list total = B/L total",
+    "Invoice must show Incoterm, Payment Term, Country of Origin",
+    "Invoice must show Fantasy Pvt. Ltd. registration number C-95/2005"
+  ]
+}

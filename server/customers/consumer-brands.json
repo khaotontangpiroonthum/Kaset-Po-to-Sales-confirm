@@ -1,0 +1,37 @@
+{
+  "id": "consumer-brands",
+  "name": "Consumer Brands Ltd.",
+  "country": "Jamaica",
+  "ref_prefix": "SR",
+  "template_file": "consumer-brands-template.xlsx",
+  "po_has_prices": true,
+  "freight_row": "CIF",
+  "freight_label": "Freight Rate 1x20ft container",
+  "internal_gp_cols": true,
+  "amount_in_words": false,
+  "default_seller_contact": "Ms. May",
+  "default_seller_signer": "Thanya",
+  "default_payment_terms": "100% T/T before ETA",
+  "default_incoterms": "FOB Bangkok, Thailand",
+  "default_port_of_loading": "Bangkok, Thailand",
+  "default_port_of_discharge": "Kingston, Jamaica",
+  "default_destination": "Kingston, Jamaica",
+  "documents_required": "Invoice, B/L, CO, Packing List, Fumi Cert.",
+  "qty_unit_on_po": "cartons_sacks",
+  "buyer": {
+    "name": "CONSUMER BRANDS LTD.",
+    "address": "34 Hagley Park Road, Kingston 10, Jamaica W.I.",
+    "ship_to_address": "73 Harbour Street, Kingston 10, Jamaica W.I.",
+    "phone": "+(876) 960 3406-8",
+    "fax": "+(876) 968 3520",
+    "default_attn": "Leisa Ann Barrett-Douse"
+  },
+  "special_clauses": [
+    "Phytosanitary + Fumigation Certificate per container",
+    "Coding on outer bags & retail packs must show Expiry / Best-Before",
+    "Minimum shelf life 1 year 6 months at date of report",
+    "Vent holes sealed; Corrosive/Dangerous sticker outside container",
+    "Seven-point inspection + high-security seal",
+    "Samples & promo materials on separate invoice (free of charge)"
+  ]
+}
